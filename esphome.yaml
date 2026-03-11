@@ -154,10 +154,20 @@ switch:
       name: Schlafmodus
     standby_mode:
       id: standby_mode_sw
-      name: Standby
+      internal: true
     low_flow_mode:
       id: low_flow_sw
       name: Niedriger Durchfluss
+
+  - platform: template
+    id: machine_power_sw
+    name: "Maschine Ein/Aus"
+    lambda: |-
+      return !id(standby_mode_sw).state;
+    turn_on_action:
+      - switch.turn_off: standby_mode_sw
+    turn_off_action:
+      - switch.turn_on: standby_mode_sw
 
 interval:
   - interval: 1000ms
