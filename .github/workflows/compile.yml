@@ -1,0 +1,55 @@
+name: Compile esphome.yaml
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: platformio-${{ runner.os }}-${{ hashFiles('.github/workflows/compile.yml') }}
+
+      - name: Install newest ESPHome (like the Home Assistant add-on)
+        run: pip install esphome
+
+      - name: Prepare CI copy of the configuration
+        run: |
+          # Use the component from the branch with the same name, if it exists
+          BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          git clone --depth 1 --branch "$BRANCH" https://github.com/Zendonir/esphome-lcc-bianca-component ../component \
+            || git clone --depth 1 https://github.com/Zendonir/esphome-lcc-bianca-component ../component
+
+          cat > secrets.yaml <<'SECRETS'
+          wifi_ssid: "ci"
+          wifi_password: "ci-password"
+          wifi_ap_password: "ci-password"
+          ota_password: "ci-password"
+          api_key: "MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="
+          SECRETS
+
+          python3 - <<'PY'
+          import os
+          s = open("esphome.yaml").read()
+          s = s.replace("      type: git\n      url: https://github.com/Zendonir/esphome-lcc-bianca-component",
+                        "      type: local\n      path: ../component/components")
+          s = s.replace('"/config/esphome/custom_partitions.csv"', '"' + os.path.abspath("custom_partitions.csv") + '"')
+          open("ci.yaml", "w").write(s)
+          PY
+          grep -n "type: local" ci.yaml
+
+      - name: Compile
+        run: |
+          esphome version
+          esphome compile ci.yaml
