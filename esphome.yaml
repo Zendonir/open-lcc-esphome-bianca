@@ -190,6 +190,46 @@ interval:
 open_lcc_bianca:
   id: lcc_1
 
+# RP2040 firmware update over Wi-Fi: downloads the newest GitHub release and flashes it
+http_request:
+  verify_ssl: true
+  timeout: 20s
+  # GitHub redirects release downloads to long URLs
+  buffer_size_tx: 2048
+  buffer_size_rx: 2048
+
+open_lcc_rp2040_updater:
+  id: rp2040_updater
+  # Default: newest release of Zendonir/open-lcc-rp2040-bianca
+  # url: https://github.com/Zendonir/open-lcc-rp2040-bianca/releases/latest/download/smart_lcc_app.bin
+  status:
+    name: RP2040 Update Status
+    entity_category: diagnostic
+
+script:
+  - id: rp2040_update
+    mode: single
+    then:
+      # Download first, the RP2040 is only touched once a valid firmware is in memory
+      - open_lcc_rp2040_updater.download: rp2040_updater
+      - if:
+          condition:
+            open_lcc_rp2040_updater.is_downloaded: rp2040_updater
+          then:
+            - open_lcc.bianca.hard_bail: lcc_1
+            - delay: 3s
+            - open_lcc.bianca.disable: lcc_1
+            # Reboot RP2040 into the serial bootloader
+            - switch.turn_off: rp2040_en_sw
+            - delay: 500ms
+            - switch.turn_off: rp2040_serial_boot_sw
+            - delay: 1s
+            - switch.turn_on: rp2040_en_sw
+            - delay: 2s
+            - switch.turn_on: rp2040_serial_boot_sw
+            - open_lcc_rp2040_updater.flash: rp2040_updater
+            - open_lcc.bianca.enable: lcc_1
+
 logger:
   level: INFO
 
@@ -275,6 +315,13 @@ binary_sensor:
     name: "Minus button"
 
 button:
+  - platform: template
+    name: "RP2040 Firmware aktualisieren"
+    icon: mdi:update
+    entity_category: config
+    on_press:
+      - script.execute: rp2040_update
+
   - platform: template
     name: "Reboot RP2040 to BOOTSEL"
     on_press:
