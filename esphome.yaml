@@ -328,6 +328,12 @@ number:
       mode: box
       entity_category: config
 
+    auto_standby_after_brew:
+      id: astb
+      name: Automatischer Standby nach Bezug
+      mode: box
+      entity_category: config
+
     coffee_boiler_temperature_set_point:
       id: coffee_set_point
       name: Solltemperatur Kaffeeboiler
