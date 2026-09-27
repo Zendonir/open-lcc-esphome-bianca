@@ -238,6 +238,10 @@ text_sensor:
       name: LCC Status
     rp2040_firmware_version:
       name: RP2040 Firmware Version
+    bail_reason:
+      name: Safety Shutdown Reason
+    controller_state:
+      name: Controller State
   - platform: version
     name: ESP Firmware Version
     entity_category: "diagnostic"
@@ -293,6 +297,19 @@ binary_sensor:
       name: Service Boiler Heating
       id: service_boiler_on
       internal: true
+    # Diagnostics, useful to analyse what the machine does in Home Assistant's history
+    pump:
+      name: Pump
+    water_line_solenoid:
+      name: Water Line Solenoid
+    service_boiler_solenoid:
+      name: Service Boiler Solenoid
+    service_boiler_level_low:
+      name: Service Boiler Level Low
+    brew_lever:
+      name: Brew Lever
+    pump_locked:
+      name: Pump Locked Until Lever Closed
 # Uncomment if using Pressensor
 #  - platform: pressensor
 #    connected:
@@ -462,6 +479,13 @@ sensor:
     brew_time:
       name: Brew time
       id: brew_time
+    # Diagnostics
+    brew_boiler_power:
+      name: Brew Boiler Heating Power
+    service_boiler_power:
+      name: Service Boiler Heating Power
+    bail_count:
+      name: Safety Shutdowns
 # Uncomment if using Acaia
 #  - platform: acaia
 #    weight:
