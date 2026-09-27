@@ -630,8 +630,10 @@ display:
     model: Custom
     width: 172
     height: 320
-    offset_height: 34
-    offset_width: 0
+    # 172x320 panel in a 240x320 controller: the visible columns start at 34
+    # (same as ESPHome's WAVESHARE_1.47IN_172X320 preset)
+    offset_height: 0
+    offset_width: 34
     cs_pin: GPIO10
     dc_pin: GPIO9
     reset_pin: GPIO8
